@@ -2,6 +2,7 @@
 This is a main routine for the Galerkin ROM (G-ROM)
 for 2D Navier-Stokes equation
 
+Originally from Prof. Leo Rebholtz
 %}
 
 clc;clear;close all
@@ -23,7 +24,7 @@ addpath ../FEM_FUN/
 % Re=1000.
 
 % DNS data
-dns_data_dir ='/Users/cmou/Desktop/Flow_past_a_cylinder/ROM_CODE/DATA';
+dns_data_dir ='add/your/path';
 dns_data_name = 'nse_dns_t23_cylmesh35dt002Re_1eN3_T10.mat';
 dns_data= fullfile(dns_data_dir,dns_data_name);
 
