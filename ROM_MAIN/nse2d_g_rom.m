@@ -24,17 +24,20 @@ addpath ../FEM_FUN/
 % Re=1000.
 
 % DNS data
-dns_data_dir ='add/your/path';
-dns_data_name = 'nse_dns_t23_cylmesh35dt002Re_1eN3_T10.mat';
-dns_data= fullfile(dns_data_dir,dns_data_name);
+% dns_data_dir ='/Users/cmou/Documents/Teaching/s2024/guest_lecture_rom_s2024_vt/code/Galerkin_ROM_NSE-main/DATA/'; % please revise this directory to your own
+% 
+% dns_data_name = 'nse_dns_t23_cylmesh35dt002Re_1eN3_T10.mat';
+% dns_data= fullfile(dns_data_dir,dns_data_name);
+% 
+% load(dns_data)
 
-load(dns_data)
+load('rom_required_vars_reduced.mat')
 
 % POD data
 load('nse_pod_re1000_snap1500.mat')
 
 % ROM Matrices, e.g., Mr, Sr, Tr
-load('nse_rom_mat_re1000_snap1500.mat')
+load('rom_required_vars_reduced.mat')
 
 Re = 0.1/nu; % Reynolds number
 
@@ -52,7 +55,7 @@ Uave = PodU2d(:,1); % first 'mode' means the centering trajectory
 
 % projection of the DNS snapshots on ROM basis
 % u_proj = Mr\C*M_h*Y
-dns_proj_data =MassROM(2:end,2:end)\( PodU2d(:,2:end)'*MassMatrix*(Snapshots(:,1:1500)-Uave));
+% dns_proj_data =MassROM(2:end,2:end)\( PodU2d(:,2:end)'*MassMatrix*(Snapshots(:,1:1500)-Uave));
 
 
 r=8; % dimension of G-ROM
@@ -73,12 +76,14 @@ tic
 % calculate L2 error and kinetic energy
 
 for i =1: numTimeSteps+1
-    
+
     tmp_rom_vel =PodU2d(:,1) + PodU2d(:,2:r+1)*Gsolns(:,i);
-    
+
     energy = 1/2 * sqrt(tmp_rom_vel' *MassMatrix * tmp_rom_vel );
-    tmp_error = sqrt((tmp_rom_vel-Snapshots(:,i))' *MassMatrix * (tmp_rom_vel-Snapshots(:,i)) );
-    
+    % tmp_error = sqrt((tmp_rom_vel-Snapshots(:,i))' *MassMatrix * (tmp_rom_vel-Snapshots(:,i)) );
+    % tmp_error = sqrt((Gsolns(:,i)-dns_proj_data(1:r,i))' *Mr * (Gsolns(:,i)-dns_proj_data(1:r,i)) );
+    tmp_error = sqrt((Gsolns(:,i)-dns_proj_data(1:r,i))' *Mr * (Gsolns(:,i)-dns_proj_data(1:r,i)) );
+
     ke_g(i) = energy;
     error_l2(i) = tmp_error;
 end
@@ -90,6 +95,8 @@ load('ke_dns_re1000.mat')
 t = 0:0.002:9.998;
 bluecolor = [0 0.4470 0.7410];
 redcolor = [0.8500 0.3250 0.0980];
+
+
 %--- plot kinetic energy
 figure(1); clf; jump = 50; frame_count = 1;
 title('Kinetic Energy','FontSize',30,'FontName','times')
@@ -108,7 +115,7 @@ for k = 1:jump:length(t)-jump
     M(frame_count) = getframe;
     hold on
     frame_count = frame_count + 1;
-    
+
 end
 legend('FOM','G-ROM')
 
@@ -129,8 +136,68 @@ for k = 1:jump:length(t)-jump
     M(frame_count) = getframe;
     hold on
     frame_count = frame_count + 1;
-    
+
 end
+
+
+%% visualization
+
+%--- plot kinetic energy
+% frame_count = 0;
+% for k = 1:jump:length(t)-jump
+%     close all
+%     figure(3); jump = 50;
+% 
+%     set(gcf, 'Position',  [0, 0, 2000, 650])
+% 
+% 
+% 
+%     subplot(2,1,1)
+% 
+%     plot(t(1:k+jump),ke_dns(1:k+jump),'Color','#A2142F','linewidth',4);
+%     hold on
+%     plot(t(1:k+jump),ke_g(1:k+jump),'Color','#0072BD','linewidth',4);
+%     set(gca,'Xticklabel',[]) %to just get rid of the numbers but leave the ticks.
+%     hold on
+%     legend('FOM','G-ROM')
+%     ax = gca;
+%     ax.FontSize = 20;
+%     ax.FontName = 'AppleGothic';
+% ax.LineWidth=2; %change to the desired value     
+% 
+%     text(0.8, 1, ['t = ', num2str(t(k))]);
+%     % M(frame_count) = getframe;
+%     hold on
+%     grid minor
+%     title('Kinetic Energy','FontSize',25,'FontName','AppleGothic')
+%     axis([0, 10, 0.6, 0.72]);
+% 
+%     %%
+%     subplot(2,1,2)
+%     plot(t(1:k+jump),error_l2(1:k+jump),'Color','#7E2F8E','linewidth',4);
+%     xlabel('Time')
+%     ax = gca;
+%     ax.FontSize = 25;
+%     ax.FontName = 'AppleGothic';
+% ax.LineWidth=2; %change to the desired value     
+% 
+%     hold on
+%     grid minor
+% 
+%     title('L^2 Error','FontSize',25,'FontName','AppleGothic')
+%     axis([0, 10, 0, 0.7]);
+% 
+%     %%
+% 
+% 
+%     saveas(gcf,['figure/energy_l2_count',num2str(frame_count),'.png'])
+% 
+%     frame_count = frame_count + 1;
+% 
+% 
+% end
+
+
 
 
 
